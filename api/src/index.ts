@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
 import dotenv from "dotenv";
 
-import { RodeiroSchema } from "./schema";
-import { IRodeiro } from './models';
+import { HighestLowestSchema, ContinuousSchema } from "./schema";
+import { IRodeiroHighestLowest, IRodeiroContinuous } from './models';
 import { model } from "mongoose";
 
 
@@ -20,7 +20,8 @@ app.use(express.urlencoded({ extended: true }));
 
 const port: number = 3000;
 
-let Rodeiro: any;
+let ContinuousRodeiro: any;
+let HighestLowestRodeiro: any;
 
 app.get("/", async (req: Request, res: Response) => {
   res.json({ "server": "working fine" });
@@ -29,30 +30,54 @@ app.get("/", async (req: Request, res: Response) => {
 // Probably a good idea to get some params from the request in order to create the new collection in the future.
 app.get("/new", async (req: Request, res: Response) => {
   const date = new Date().toLocaleString().replace(" ", "").replace(",", "@").slice(0, -3);
-  Rodeiro = model<IRodeiro>(`Planilha${date}`, RodeiroSchema);
+  ContinuousRodeiro = model<IRodeiroContinuous>(`Continuous${date}`, ContinuousSchema);
+  HighestLowestRodeiro = model<IRodeiroHighestLowest>(`HighestLowest${date}`, HighestLowestSchema);
   res.json({ "server": "working fine" });
 })
 
-app.post('/send', async (req: Request, res: Response) => {
+app.post('/continuous', async (req: Request, res: Response) => {
   try {
-    const rodeiro_body: IRodeiro = req.body;
-    const rodeiro = new Rodeiro(rodeiro_body);
+    const rodeiro_body: IRodeiroContinuous = req.body;
+    const rodeiro = new ContinuousRodeiro(rodeiro_body);
     await rodeiro.save();
-    res.status(201);
+    res.status(201).json();
   } catch (error) {
     console.log(error);
     res.status(400).json({ "error": "failed to parse 'rodeiro' struct" });
   }
 });
 
-app.get('/get', async (req: Request, res: Response) => {
+app.post('/highestlowest', async (req: Request, res: Response) => {
   try {
-    const data = await Rodeiro.find();
+    const rodeiro_body: IRodeiroHighestLowest = req.body;
+    const rodeiro = new HighestLowestRodeiro(rodeiro_body);
+    await rodeiro.save();
+    res.status(201).json();
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ "error": "failed to parse 'rodeiro' struct" });
+  }
+});
+
+app.get('/continuous', async (req: Request, res: Response) => {
+  try {
+    const data = await ContinuousRodeiro.find();
     res.json(data);
   } catch (error) {
     res.status(500).json({ "error": "failed to get the users" });
   }
 });
+
+
+app.get('/highestlowest', async (req: Request, res: Response) => {
+  try {
+    const data = await HighestLowestRodeiro.find();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ "error": "failed to get the users" });
+  }
+});
+
 
 app.listen(port, async () => {
   await connect(connectionString);
