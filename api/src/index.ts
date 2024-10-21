@@ -23,12 +23,12 @@ const port: number = 3000;
 let ContinuousRodeiro: any;
 let HighestLowestRodeiro: any;
 
-app.get("/", async (req: Request, res: Response) => {
+app.get("/", async (_: Request, res: Response) => {
   res.json({ "server": "working fine" });
 })
 
 // Probably a good idea to get some params from the request in order to create the new collection in the future.
-app.get("/new", async (req: Request, res: Response) => {
+app.get("/new", async (_: Request, res: Response) => {
   const date = new Date().toLocaleString().replace(" ", "").replace(",", "@").slice(0, -3);
   ContinuousRodeiro = model<IRodeiroContinuous>(`Continuous${date}`, ContinuousSchema);
   HighestLowestRodeiro = model<IRodeiroHighestLowest>(`HighestLowest${date}`, HighestLowestSchema);
@@ -59,7 +59,7 @@ app.post('/highestlowest', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/continuous', async (req: Request, res: Response) => {
+app.get('/continuous', async (_: Request, res: Response) => {
   try {
     const data = await ContinuousRodeiro.find();
     res.json(data);
@@ -69,7 +69,7 @@ app.get('/continuous', async (req: Request, res: Response) => {
 });
 
 
-app.get('/highestlowest', async (req: Request, res: Response) => {
+app.get('/highestlowest', async (_: Request, res: Response) => {
   try {
     const data = await HighestLowestRodeiro.find();
     res.json(data);
@@ -78,6 +78,25 @@ app.get('/highestlowest', async (req: Request, res: Response) => {
   }
 });
 
+
+app.get('/continuous/last', async (_: Request, res: Response) => {
+  try {
+    const data = await ContinuousRodeiro.findOne({}).sort({ _id: -1 });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ "error": "failed to get the users" });
+  }
+});
+
+
+app.get('/highestlowest/last', async (_: Request, res: Response) => {
+  try {
+    const data = await HighestLowestRodeiro.findOne({}).sort({ _id: -1 });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ "error": "failed to get the users" });
+  }
+});
 
 app.listen(port, async () => {
   await connect(connectionString);
