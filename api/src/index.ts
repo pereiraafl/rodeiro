@@ -1,8 +1,10 @@
 import express, { Request, Response } from 'express';
 import dotenv from "dotenv";
 
-import { Rodeiro } from "./schema";
+import { RodeiroSchema } from "./schema";
 import { IRodeiro } from './models';
+import { model } from "mongoose";
+
 
 dotenv.config();
 
@@ -18,10 +20,17 @@ app.use(express.urlencoded({ extended: true }));
 
 const port: number = 3000;
 
+let Rodeiro: any;
+
 app.get("/", async (req: Request, res: Response) => {
-
   res.json({ "server": "working fine" });
+})
 
+// Probably a good idea to get some params from the request in order to create the new collection in the future.
+app.get("/new", async (req: Request, res: Response) => {
+  const date = new Date().toLocaleString().replace(" ", "").replace(",", "@").slice(0, -3);
+  Rodeiro = model<IRodeiro>(`Planilha${date}`, RodeiroSchema);
+  res.json({ "server": "working fine" });
 })
 
 app.post('/send', async (req: Request, res: Response) => {
