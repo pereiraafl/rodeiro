@@ -10,15 +10,48 @@ import threading
 import math 
 import requests
 
+import socketio
+
 ROTA = "http://localhost:3000"
 arduino_nano = serial.Serial(port='COM14', baudrate=9600, timeout=0, parity=serial.PARITY_EVEN, stopbits=1)
 arduino_uno = serial.Serial(port='COM8', baudrate=9600)
+
 start_req = requests.get(f"{ROTA}/new").status_code
 if (start_req == 200):
     print("Inicializando ...")
 else:
     print(f"Falha no servidor: {start_req}")
     exit(1)
+
+should_exit = False
+
+def handle_socket():
+    global should_exit
+    sio = socketio.Client()
+
+    @sio.event
+    def connect():
+        print("Socket connected successfully")
+
+
+    @sio.on("send")
+    def handle_send(data):
+        print("Received data:", data)
+        message = data["mode"]
+        if "on" in message:
+            arduino_uno.write("on".encode())
+        if "off" in message:
+            arduino_uno.write("off".encode())
+
+    try:
+        sio.connect(ROTA)
+        while True:
+            if should_exit:
+                return
+            sleep(1)
+    except Exception as e:
+        print(f"Error connecting to socket: {e}")
+
 
 def get_time_formated():
     month = datetime.now().month
@@ -75,7 +108,7 @@ lock = threading.Lock()
 current_temp_reading = 0
 current_temp_list = []
 cycle = 0
-should_exit = False
+
 
 def read_from_nano():
     global current_temp_reading, current_temp_list, should_exit
@@ -138,7 +171,6 @@ def read_from_uno():
                     "cycle": cycle,
                 }
                 requests.post(f"{ROTA}/highestlowest", json=data_obj)
-
                 print(f"min_temp: {min_temp}, max_temp: {max_temp}, cycle: {cycle}")
                 file_highest_lowest.write(f"{min_temp}, {max_temp}, {cycle}\n")
                 min_temp = -1
@@ -151,12 +183,14 @@ def read_from_uno():
             should_exit = True
             
 
-
-
 def test_serial_reading():
+    thread_socket = threading.Thread(target=handle_socket)
+
     thread_nano = threading.Thread(target=read_from_nano)
     thread_uno = threading.Thread(target=read_from_uno)
-    
+
+    thread_socket.start()
+
     thread_nano.start()
     thread_uno.start()
 
