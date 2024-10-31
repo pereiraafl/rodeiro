@@ -3,27 +3,28 @@ import dotenv from "dotenv";
 
 import { HighestLowestSchema, ContinuousSchema } from "./schema";
 import { IRodeiroHighestLowest, IRodeiroContinuous } from './models';
-import { model } from "mongoose";
+import { model, connect } from "mongoose";
 
-
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+const app = express();
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }));
 dotenv.config();
-
-import { connect } from 'mongoose';
-
 const connectionString = process.env.DB || "";
 
-const app = express();
 
-app.use(express.json())
+const server = createServer(app);
+const io = new Server(server);
 
-app.use(express.urlencoded({ extended: true }));
 
 const port: number = 3000;
+
 
 let ContinuousRodeiro: any;
 let HighestLowestRodeiro: any;
 
-app.get("/", async (_: Request, res: Response) => {
+app.get("/test", async (_: Request, res: Response) => {
   res.json({ "server": "working fine" });
 })
 
@@ -98,7 +99,24 @@ app.get('/highestlowest/last', async (_: Request, res: Response) => {
   }
 });
 
-app.listen(port, async () => {
+io.on('connection', (socket: any) => {
+
+  console.log("Someone just connected on sockets. ID: ", socket.id);
+
+
+  setInterval(() => {
+    socket.emit('send', { message: 'Hello from the server!' });
+  }, 5000); // Send every 5 seconds
+  //
+  // socket.on("send", async (data: any) => {
+  //   // create_sensor = await SensorModel.create(data);
+  //   console.log(`Recebido: ${data}`);
+  //   socket.broadcast.emit("send", data);
+  // })
+
+});
+
+server.listen(port, async () => {
   await connect(connectionString);
   console.log(`Server is running on http://localhost:${port}`);
 });

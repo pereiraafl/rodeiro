@@ -1,4 +1,6 @@
 import requests
+import socketio
+from time import sleep
 
 rota = "http://localhost:3000"
 
@@ -38,11 +40,30 @@ def get_last_continuous():
     print(f"last continuous: { req.text }")
 
 
+sio = socketio.Client()
+@sio.event
+def connect():
+    print("Socket connected successfully")
+
+
+@sio.on("send")
+def handle_send(data):
+    print("Received data:", data)
+
+
+sio.connect("http://localhost:3000")
+ 
+
+def test_sockets():
+    while True:
+        sleep(3)
+        sio.emit("send", "Enviando dados")
+
 
 # create_highestlowest()
 # create_continuous()
 # get_highestlowest()
 # get_continuous()
+# get_last_continuous()
 
-get_last_highestlowest()
-get_last_continuous()
+test_sockets()
