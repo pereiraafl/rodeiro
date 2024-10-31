@@ -130,11 +130,11 @@ io.on('connection', (socket: any) => {
   setInterval(() => {
     if (arduinoSocketCommunication) {
       if (arduinoShouldSendOn) {
-        socket.emit('send', { message: 'Arduino deveria ligar' });
+        socket.emit('send', { mode: 'on' });
         arduinoShouldSendOn = false;
       }
       if (arduinoShouldSendOff) {
-        socket.emit('send', { message: 'Arduino deveria desligar' });
+        socket.emit('send', { mode: 'off' });
         arduinoShouldSendOff = false;
       }
       arduinoSocketCommunication = false;
