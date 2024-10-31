@@ -24,6 +24,10 @@ const port: number = 3000;
 let ContinuousRodeiro: any;
 let HighestLowestRodeiro: any;
 
+let arduinoSocketCommunication = false;
+let arduinoShouldSendOn = false;
+let arduinoShouldSendOff = false;
+
 app.get("/test", async (_: Request, res: Response) => {
   res.json({ "server": "working fine" });
 })
@@ -99,21 +103,43 @@ app.get('/highestlowest/last', async (_: Request, res: Response) => {
   }
 });
 
+app.get('/arduino/on', async (_: Request, res: Response) => {
+  try {
+    arduinoSocketCommunication = true;
+    arduinoShouldSendOn = true;
+    res.json({ "message": "obrigado por ligar o arduino. Volte sempre" });
+  } catch (error) {
+    res.status(500).json({ "error": "server failed" });
+  }
+});
+
+app.get('/arduino/off', async (_: Request, res: Response) => {
+  try {
+    arduinoSocketCommunication = true;
+    arduinoShouldSendOff = true;
+    res.json({ "message": "obrigado por desligar o arduino. Volte sempre" });
+  } catch (error) {
+    res.status(500).json({ "error": "server failed" });
+  }
+});
+
 io.on('connection', (socket: any) => {
 
   console.log("Someone just connected on sockets. ID: ", socket.id);
 
-
   setInterval(() => {
-    socket.emit('send', { message: 'Hello from the server!' });
-  }, 5000); // Send every 5 seconds
-  //
-  // socket.on("send", async (data: any) => {
-  //   // create_sensor = await SensorModel.create(data);
-  //   console.log(`Recebido: ${data}`);
-  //   socket.broadcast.emit("send", data);
-  // })
-
+    if (arduinoSocketCommunication) {
+      if (arduinoShouldSendOn) {
+        socket.emit('send', { message: 'Arduino deveria ligar' });
+        arduinoShouldSendOn = false;
+      }
+      if (arduinoShouldSendOff) {
+        socket.emit('send', { message: 'Arduino deveria desligar' });
+        arduinoShouldSendOff = false;
+      }
+      arduinoSocketCommunication = false;
+    }
+  }, 1000);
 });
 
 server.listen(port, async () => {
