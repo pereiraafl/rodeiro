@@ -184,6 +184,38 @@ app.get('/csv/continuous/:name', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/csv/highestlowest/:name', async (req: Request, res: Response) => {
+  try {
+    let collection_name = req.params.name;
+    let data = await mongooseConnection.connection.db?.collection(collection_name).find().toArray();
+    let data_arr: IRodeiroHighestLowest[] = [];
+    data?.forEach((val) => {
+      let continuousDataParsed: IRodeiroHighestLowest = {
+        temp_init: val["temp_init"],
+        temp_final: val["temp_final"],
+        cycle: val["cycle"],
+      };
+      data_arr.push(continuousDataParsed);
+    })
+    const csvStringifier = createObjectCsvStringifier({
+      header: [
+        { id: 'temp_init', title: 'Temperatura Inicial' },
+        { id: 'temp_final', title: 'Temperatura Final' },
+        { id: 'cycle', title: 'Ciclo' },
+      ],
+    });
+    const csvData = csvStringifier.stringifyRecords(data_arr);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment(`${collection_name}.csv`);
+    res.send(`${csvStringifier.getHeaderString()}${csvData}`);
+
+  } catch (error) {
+    console.log("Error while trying to get download csv: ${erro}");
+  }
+});
+
+
 io.on('connection', (socket: any) => {
 
   console.log("Someone just connected on sockets. ID: ", socket.id);
