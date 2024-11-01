@@ -4,9 +4,10 @@ import dotenv from "dotenv";
 import { HighestLowestSchema, ContinuousSchema } from "./schema";
 import { IRodeiroHighestLowest, IRodeiroContinuous } from './models';
 import { model, connect, Mongoose } from "mongoose";
-
 import { Server } from 'socket.io';
 import { createServer } from 'http';
+import { createObjectCsvStringifier } from "csv-writer";
+
 const app = express();
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
@@ -34,7 +35,8 @@ app.get("/test", async (_: Request, res: Response) => {
 
 // Probably a good idea to get some params from the request in order to create the new collection in the future.
 app.get("/new", async (_: Request, res: Response) => {
-  const date = new Date().toLocaleString().replace(" ", "").replace(",", "@").slice(0, -3);
+  const date = new Date().toLocaleString().replace(" ", "").replace(",", "@").replace(/\//g, "-").slice(0, -3);
+  console.log(`Data: ${date}`);
   ContinuousRodeiro = model<IRodeiroContinuous>(`Continuous${date}`, ContinuousSchema);
   HighestLowestRodeiro = model<IRodeiroHighestLowest>(`HighestLowest${date}`, HighestLowestSchema);
   res.json({ "server": "working fine" });
@@ -129,7 +131,6 @@ app.get('/list/continuous', async (_: Request, res: Response) => {
     let collections_arr: string[] = []; // continuous
     collections?.forEach((coll) => {
       if (coll.name.startsWith("continuous")) {
-        console.log(`names: ${coll.name}`);
         collections_arr.push(coll.name);
       }
     })
@@ -151,6 +152,35 @@ app.get('/list/highestlowest', async (_: Request, res: Response) => {
     res.json({ "collections": collections_arr })
   } catch (error) {
     console.log("Error while trying to get collections: ${error}");
+  }
+});
+
+app.get('/csv/continuous/:name', async (req: Request, res: Response) => {
+  try {
+    let collection_name = req.params.name;
+    let data = await mongooseConnection.connection.db?.collection(collection_name).find().toArray();
+    let data_arr: IRodeiroContinuous[] = [];
+    data?.forEach((val) => {
+      let continuousDataParsed: IRodeiroContinuous = {
+        current_temp: val["current_temp"],
+        cycle: val["cycle"]
+      };
+      data_arr.push(continuousDataParsed);
+    })
+    const csvStringifier = createObjectCsvStringifier({
+      header: [
+        { id: 'current_temp', title: 'Temperatura Atual' },
+        { id: 'cycle', title: 'Ciclo' },
+      ],
+    });
+    const csvData = csvStringifier.stringifyRecords(data_arr);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment(`${collection_name}.csv`);
+    res.send(`${csvStringifier.getHeaderString()}${csvData}`);
+
+  } catch (error) {
+    console.log("Error while trying to get download csv: ${erro}");
   }
 });
 
