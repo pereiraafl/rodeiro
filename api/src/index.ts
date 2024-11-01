@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 import { HighestLowestSchema, ContinuousSchema } from "./schema";
 import { IRodeiroHighestLowest, IRodeiroContinuous } from './models';
-import { model, connect } from "mongoose";
+import { model, connect, Mongoose } from "mongoose";
 
 import { Server } from 'socket.io';
 import { createServer } from 'http';
@@ -20,7 +20,7 @@ const io = new Server(server);
 
 const port: number = 3000;
 
-
+let mongooseConnection: Mongoose;
 let ContinuousRodeiro: any;
 let HighestLowestRodeiro: any;
 
@@ -123,6 +123,37 @@ app.get('/arduino/off', async (_: Request, res: Response) => {
   }
 });
 
+app.get('/list/continuous', async (_: Request, res: Response) => {
+  try {
+    let collections = await mongooseConnection.connection.db?.listCollections().toArray();
+    let collections_arr: string[] = []; // continuous
+    collections?.forEach((coll) => {
+      if (coll.name.startsWith("continuous")) {
+        console.log(`names: ${coll.name}`);
+        collections_arr.push(coll.name);
+      }
+    })
+    res.json({ "collections": collections_arr })
+  } catch (error) {
+    console.log("Error while trying to get collections: ${error}");
+  }
+});
+
+app.get('/list/highestlowest', async (_: Request, res: Response) => {
+  try {
+    let collections = await mongooseConnection.connection.db?.listCollections().toArray();
+    let collections_arr: string[] = []; // continuous
+    collections?.forEach((coll) => {
+      if (coll.name.startsWith("highestlowest")) {
+        collections_arr.push(coll.name);
+      }
+    })
+    res.json({ "collections": collections_arr })
+  } catch (error) {
+    console.log("Error while trying to get collections: ${error}");
+  }
+});
+
 io.on('connection', (socket: any) => {
 
   console.log("Someone just connected on sockets. ID: ", socket.id);
@@ -143,6 +174,6 @@ io.on('connection', (socket: any) => {
 });
 
 server.listen(port, async () => {
-  await connect(connectionString);
+  mongooseConnection = await connect(connectionString);
   console.log(`Server is running on http://localhost:${port}`);
 });
