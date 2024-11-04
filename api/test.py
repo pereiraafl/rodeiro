@@ -88,6 +88,22 @@ def plot_highestlowest():
     plt.title("Temperatura máxima e mínima em cada ciclo")
     plt.show()
 
+def plot_continuous():
+    highest_lowest_route = "http://150.162.208.160:3000/continuous"
+    raw_data = requests.get(highest_lowest_route).json()
+    arr_temp = []
+    arr_cycles = []
+    for data in raw_data: #{"_id":"6728ce829ef8a227fb1addae","current_temp":84.75,"cycle":15,"__v":0}
+        arr_temp.append(data["current_temp"])
+        arr_cycles.append(data["cycle"])
+    plt.scatter(arr_cycles, arr_temp, c=arr_temp, cmap="magma_r")
+    plt.xlabel("Ciclos [n]")
+    plt.ylabel("Temperatura ºC")
+    plt.ylim(min(arr_temp) - 3, max(arr_temp) + 3)
+    plt.legend()
+    plt.title("Temperatura em cada ciclo")
+    plt.colorbar()
+    plt.show()
 
 
 
