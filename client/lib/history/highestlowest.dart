@@ -34,7 +34,7 @@ class _HistoryHighestlowestState extends State<HistoryHighestlowest> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 500,
+      width: 700,
       height: 500,
       child: Column(
         children: [
