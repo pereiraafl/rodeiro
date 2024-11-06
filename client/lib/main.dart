@@ -1,5 +1,8 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:client/history/continuous.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future main() async{
@@ -7,11 +10,12 @@ Future main() async{
   String? minhaKey = dotenv.env["API_URL"];
   print("Minha key: " + minhaKey!);
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
+
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +39,35 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  String? API_URL = dotenv.env["API_URL"];
+
+  bool flag = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blueGrey[900],
       body: Center(
-        child: Text("OLÁ"),
+        child: Column(
+          children: [
+            IconButton(
+                onPressed:() {
+                  setState(() {
+                    flag = !flag;
+                  });
+                },
+                icon: Icon(Icons.catching_pokemon, size: 90, color: Colors.red,)
+            ),
+            flag ?
+            Row(
+              children: [
+                HistoryContinuous(API_URL: API_URL!),
+              ],
+            ) : SizedBox()
+          ],
+        ),
       ),
     );
   }
 }
+
