@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:client/history/continuous.dart';
+import 'package:client/history/highestlowest.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -62,6 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Row(
               children: [
                 HistoryContinuous(API_URL: API_URL!),
+                HistoryHighestlowest(API_URL: API_URL!)
               ],
             ) : SizedBox()
           ],
