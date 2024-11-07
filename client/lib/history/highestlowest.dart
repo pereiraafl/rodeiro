@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class _HistoryHighestlowestState extends State<HistoryHighestlowest> {
   @override
   void initState(){
     apiUrl = widget.API_URL;
-    fetchContinuousData(apiUrl).then((value) {
+    fetchContinuous(apiUrl).then((value) {
       setState(() {
         _dataSource = value;
       });
@@ -81,22 +82,21 @@ class _HistoryHighestlowestState extends State<HistoryHighestlowest> {
               majorGridLines: MajorGridLines(width: 0),
               axisLine: AxisLine(width: 0),
             ),
-            series: <StackedBarSeries<HighestlowestPoints, int>>[
+            series: <BarSeries<HighestlowestPoints, int>>[
               // Initialize line series with data points
-              StackedBarSeries <HighestlowestPoints, int>(
+              BarSeries <HighestlowestPoints, int>(
                 color: Colors.lightBlue,
                 dataSource: _dataSource,
                 xValueMapper: (HighestlowestPoints value, _) => value.cycle,
                 yValueMapper: (HighestlowestPoints value, _) => value.temp_init
               ),
-              StackedBarSeries <HighestlowestPoints, int>(
+              BarSeries <HighestlowestPoints, int>(
                   color: Colors.redAccent,
                   dataSource: _dataSource,
                   xValueMapper: (HighestlowestPoints value, _) => value.cycle,
                   yValueMapper: (HighestlowestPoints value, _) => value.temp_final
               ),
             ],
-
           )
         ],
       ),
@@ -111,18 +111,22 @@ class HighestlowestPoints {
   final double temp_final;
 }
 
-
-Future<List<HighestlowestPoints>> fetchContinuousData(String url) async {
-  final response = await http.get(Uri.parse('${url}/highestlowest'));
+Future<List<HighestlowestPoints>> fetchContinuous(String url) async {
+  final response = await http.get(Uri.parse('${url}/continuous'));
   final response_json = json.decode(response.body);
 
   List<HighestlowestPoints> dataPoints = [];
+  int index = 0;
+  List<double> temps = [];
   for (var point in response_json) {
-    int cycle = point["cycle"].toInt();
-    double temp_init = point["temp_init"].toDouble();
-    double temp_final = point["temp_final"].toDouble();
-    HighestlowestPoints highestlowestPoints = HighestlowestPoints(cycle, temp_init, temp_final);
-    dataPoints.add(highestlowestPoints);
+    if (point["cycle"] > index) {
+      double maxTemp = temps.reduce(max);
+      double minTemp = temps.reduce(min);
+      dataPoints.add(HighestlowestPoints(index, minTemp, maxTemp));
+      index = point["cycle"];
+      temps = [];
+    }
+    temps.add(point["current_temp"].toDouble());
   }
 
   return dataPoints;
