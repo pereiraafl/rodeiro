@@ -100,7 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   HistoryHighestlowest(API_URL: API_URL!)
                 ],
               ),
-              LiveContinuous(API_URL: API_URL!, isScatter: _selectedToggle[0],)
+              LiveContinuous(API_URL: API_URL!)
             ],
           ) : SizedBox()
         ],

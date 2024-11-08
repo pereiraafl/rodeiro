@@ -65,7 +65,7 @@ class _HistoryContinuousState extends State<HistoryContinuous> {
               enablePinching: true,
             ),
             // Initialize category axis (e.g., x-axis)
-            primaryXAxis: const CategoryAxis(
+            primaryXAxis: const NumericAxis(
                 labelStyle: TextStyle(
                     color: Colors.white,
                     fontSize: 14,

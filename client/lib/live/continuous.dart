@@ -10,8 +10,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 class LiveContinuous extends StatefulWidget {
   final String API_URL;
-  final bool isScatter;
-  const LiveContinuous({super.key, required this.API_URL, required this.isScatter});
+  const LiveContinuous({super.key, required this.API_URL});
 
   @override
   State<LiveContinuous> createState() => _LiveContinuousState();
@@ -29,7 +28,6 @@ class _LiveContinuousState extends State<LiveContinuous> {
   @override
   void initState(){
     apiUrl = widget.API_URL;
-    isScatter = widget.isScatter;
     chartData = <ContinuousPoints>[];
     timer = Timer.periodic(const Duration(milliseconds: 500), _updateDataSource);
     super.initState();
@@ -110,28 +108,17 @@ class _LiveContinuousState extends State<LiveContinuous> {
               majorGridLines: MajorGridLines(width: 0),
               axisLine: AxisLine(width: 0),
             ),
-            series: isScatter ? <ScatterSeries<ContinuousPoints, int>>[
-              // Initialize line series with data points
-              ScatterSeries<ContinuousPoints, int>(
+            series: <FastLineSeries<ContinuousPoints, int>>[
+    // Initialize line series with data points
+                FastLineSeries<ContinuousPoints, int>(
                 onRendererCreated: (ChartSeriesController controller) {
                   chartSeriesController_ = controller;
                 },
                 color: Colors.lightBlue,
                 dataSource: chartData,
-                xValueMapper: (ContinuousPoints value, _) => value.cycle,
+                xValueMapper: (ContinuousPoints value, _) => value.index,
                 yValueMapper: (ContinuousPoints value, _) => value.temp,
-              ),
-            ] : <FastLineSeries<ContinuousPoints, int>>[
-    // Initialize line series with data points
-              FastLineSeries<ContinuousPoints, int>(
-              onRendererCreated: (ChartSeriesController controller) {
-                chartSeriesController_ = controller;
-              },
-              color: Colors.lightBlue,
-              dataSource: chartData,
-              xValueMapper: (ContinuousPoints value, _) => value.index,
-              yValueMapper: (ContinuousPoints value, _) => value.temp,
-              ),
+                ),
               ]
           )
         ],
