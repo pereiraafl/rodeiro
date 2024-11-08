@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'package:dio/dio.dart';
+import 'dart:io';
+
 Future main() async{
   await dotenv.load(fileName: ".env");
   String? minhaKey = dotenv.env["API_URL"];
@@ -44,6 +47,9 @@ class _MyHomePageState extends State<MyHomePage> {
   String? API_URL = dotenv.env["API_URL"];
 
   bool flag = false;
+  bool isShowingDropdown = false;
+  List<String> continuousCollectionNames = [];
+  List<DropdownMenuEntry> dropdownList = [];
 
   List<bool> _selectedToggle = [true, false];
 
@@ -102,10 +108,61 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               LiveContinuous(API_URL: API_URL!)
             ],
-          ) : SizedBox()
+          ) : SizedBox(),
+          IconButton(
+              onPressed: () async {
+                // Fetch all /list/continuous
+                List<String> tmpString = await getListCollectionsContinuous();
+                List<DropdownMenuEntry> tmpDropdown = [];
+                for (var name in tmpString) {
+                  tmpDropdown.add(DropdownMenuEntry(value: name, label: name));
+                }
+                setState(() {
+                  dropdownList = tmpDropdown;
+                  isShowingDropdown = !isShowingDropdown;
+                });
+              },
+              icon: Icon(Icons.download)
+          ),
+          isShowingDropdown ? DropdownMenu(
+              onSelected: (item) async{
+                await downloadCsv(item);
+              },
+              dropdownMenuEntries: dropdownList,
+            textStyle: TextStyle(color: Colors.white),
+          ) : SizedBox(),
         ],
       ),
     );
   }
 }
 
+Future<List<String>> getListCollectionsContinuous() async {
+  final response = await http.get(Uri.parse('${dotenv.env["API_URL"]}/list/continuous'));
+  final response_json = json.decode(response.body);
+  List<String> collectionNames = [];
+  var collections = response_json["collections"];
+  for (var collection in collections) {
+    collectionNames.add(collection);
+  }
+  return collectionNames;
+}
+
+Future<void> downloadCsv(String collName) async{
+  final API_URL = dotenv.env["API_URL"];
+  final dio = Dio();
+
+  final rs = await dio.get(
+    "${API_URL}/csv/continuous/${collName}",
+    options: Options(responseType: ResponseType.stream),
+  );
+
+  final file = File('${collName.replaceAll(":", "-")}.csv');
+  final fileStream = file.openWrite();
+
+  await for (final chunk in rs.data.stream) {
+    fileStream.add(chunk);
+  }
+
+  await fileStream.close();
+}
