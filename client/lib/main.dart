@@ -71,12 +71,20 @@ class _MyHomePageState extends State<MyHomePage> {
                           flag = !flag;
                         });
                       },
-                      icon: Icon(Icons.catching_pokemon, size: 20, color: Colors.red,)
+                      icon: Icon(Icons.refresh, size: 30, color: Colors.blue[800],)
                   ),
                   ToggleButtons(
+                    constraints: const BoxConstraints(
+                      minHeight: 40.0,
+                      minWidth: 80.0,
+                    ),
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    selectedBorderColor: Colors.lightBlue[700],
+                    selectedColor: Colors.lightBlue[500],
+                    color: Colors.white,
                     children: [
-                      Icon(Icons.calendar_view_month),
-                      Icon(Icons.timeline)
+                      Text("Discreto", style: TextStyle(fontWeight: FontWeight.w600),),
+                      Text("Contínuo", style: TextStyle(fontWeight: FontWeight.w600),),
                     ],
                     isSelected: _selectedToggle,
                     onPressed: (int index) {
@@ -122,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   isShowingDropdown = !isShowingDropdown;
                 });
               },
-              icon: Icon(Icons.download)
+              icon: Icon(Icons.download, size: 30, color: Colors.blue[800])
           ),
           isShowingDropdown ? DropdownMenu(
               onSelected: (item) async{
