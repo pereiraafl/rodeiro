@@ -36,7 +36,7 @@ class _HistoryHighestlowestState extends State<HistoryHighestlowest> {
   Widget build(BuildContext context) {
     return Container(
       width: 700,
-      height: 500,
+      height: 380,
       child: Column(
         children: [
           SfCartesianChart(

@@ -47,11 +47,14 @@ class _MyHomePageState extends State<MyHomePage> {
   String? API_URL = dotenv.env["API_URL"];
 
   bool flag = false;
+  bool isShowingChartOpt = false;
   bool isShowingDropdown = false;
+  bool isShowingArduinoOpt = false;
   List<String> continuousCollectionNames = [];
   List<DropdownMenuEntry> dropdownList = [];
 
   List<bool> _selectedToggle = [true, false];
+  List<bool> _selectedToggleArduino = [true, false];
 
   @override
   Widget build(BuildContext context) {
@@ -60,63 +63,110 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Center(
-            child:
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                      onPressed:() {
-                        setState(() {
-                          flag = !flag;
-                        });
-                      },
-                      icon: Icon(Icons.refresh, size: 30, color: Colors.blue[800],)
-                  ),
-                  ToggleButtons(
-                    constraints: const BoxConstraints(
-                      minHeight: 40.0,
-                      minWidth: 80.0,
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    selectedBorderColor: Colors.lightBlue[700],
-                    selectedColor: Colors.lightBlue[500],
-                    color: Colors.white,
-                    children: [
-                      Text("Discreto", style: TextStyle(fontWeight: FontWeight.w600),),
-                      Text("Contínuo", style: TextStyle(fontWeight: FontWeight.w600),),
-                    ],
-                    isSelected: _selectedToggle,
-                    onPressed: (int index) {
-                      setState(() {
-                        if (index == 0) {
-                          _selectedToggle[0] = true;
-                          _selectedToggle[1] = false;
-                        }
-                        if (index == 1) {
-                          _selectedToggle[0] = false;
-                          _selectedToggle[1] = true;
-                        }
-                      });
-                    },
-                  ),
-                ],
-              ),
-          ),
-          flag ?
-          Column(
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  HistoryContinuous(API_URL: API_URL!, isScatter: _selectedToggle[0],),
-                  HistoryHighestlowest(API_URL: API_URL!)
-                ],
+              IconButton(
+                  onPressed:() {
+                    setState(() {
+                      isShowingChartOpt = !isShowingChartOpt;
+                    });
+                  },
+                  icon: Icon(Icons.bar_chart, size: 30, color: Colors.blue[800],)
               ),
-              LiveContinuous(API_URL: API_URL!)
+             AnimatedOpacity(
+                opacity: isShowingChartOpt ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 1000),
+                child: isShowingChartOpt ? Row(
+                  children: [
+                    ToggleButtons(
+                      constraints: const BoxConstraints(
+                        minHeight: 40.0,
+                        minWidth: 80.0,
+                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      selectedBorderColor: Colors.lightBlue[700],
+                      selectedColor: Colors.lightBlue[500],
+                      color: Colors.white,
+                      children: [
+                        Text("Discreto", style: TextStyle(fontWeight: FontWeight.w600),),
+                        Text("Contínuo", style: TextStyle(fontWeight: FontWeight.w600),),
+                      ],
+                      isSelected: _selectedToggle,
+                      onPressed: (int index) {
+                        setState(() {
+                          if (index == 0) {
+                            _selectedToggle[0] = true;
+                            _selectedToggle[1] = false;
+                          }
+                          if (index == 1) {
+                            _selectedToggle[0] = false;
+                            _selectedToggle[1] = true;
+                          }
+                        });
+                      },
+                    ),
+                    IconButton(
+                        onPressed: () {
+                          setState(() {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => displayCharts(context, _selectedToggle[0], API_URL!)),
+                            );
+                          });
+                        },
+                        icon: Icon(Icons.refresh, size: 25, color: Colors.blue[800],)
+                    )
+                  ],
+                ) : SizedBox()
+              )
             ],
-          ) : SizedBox(),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                  onPressed: () {
+                    setState(() {
+                      isShowingArduinoOpt = !isShowingArduinoOpt;
+                    });
+                  },
+                  icon: Icon(Icons.settings, size: 30, color: Colors.blue[800])
+              ),
+              SizedBox(height: 200,),
+              AnimatedOpacity(
+                opacity: isShowingArduinoOpt ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 1000),
+                child: isShowingArduinoOpt ? ToggleButtons(
+                  constraints: const BoxConstraints(
+                    minHeight: 40.0,
+                    minWidth: 120.0,
+                  ),
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  selectedBorderColor: Colors.lightBlue[700],
+                  selectedColor: Colors.lightBlue[500],
+                  color: Colors.white,
+                  children: [
+                    Text("Ligar Arduino", style: TextStyle(fontWeight: FontWeight.w600),),
+                    Text("Desligar Arduino", style: TextStyle(fontWeight: FontWeight.w600),),
+                  ],
+                  isSelected: _selectedToggleArduino,
+                  onPressed: (int index) {
+                    setState(() {
+                      if (index == 0) {
+                        _selectedToggleArduino[0] = true;
+                        _selectedToggleArduino[1] = false;
+                      }
+                      if (index == 1) {
+                        _selectedToggleArduino[0] = false;
+                        _selectedToggleArduino[1] = true;
+                      }
+                    });
+                  },
+                ) : SizedBox()
+              ),
+            ],
+          ),
           IconButton(
               onPressed: () async {
                 // Fetch all /list/continuous
@@ -173,4 +223,29 @@ Future<void> downloadCsv(String collName) async{
   }
 
   await fileStream.close();
+}
+
+Widget displayCharts(BuildContext context, bool scatterOpt, String api_url) {
+  return Scaffold(
+      backgroundColor: Colors.blueGrey[900],
+      body: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Icon(Icons.arrow_back, size: 20,),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            HistoryContinuous(API_URL: api_url, isScatter: scatterOpt,),
+            HistoryHighestlowest(API_URL: api_url)
+          ],
+        ),
+        LiveContinuous(API_URL: api_url),
+      ],
+    )
+  );
 }

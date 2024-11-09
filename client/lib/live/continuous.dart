@@ -62,8 +62,8 @@ class _LiveContinuousState extends State<LiveContinuous> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 500,
-      height: 320,
+      width: 700,
+      height: 380,
       child: Column(
         children: [
           SfCartesianChart(
