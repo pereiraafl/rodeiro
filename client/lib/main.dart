@@ -88,10 +88,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       selectedBorderColor: Colors.lightBlue[700],
                       selectedColor: Colors.lightBlue[500],
                       color: Colors.white,
-                      children: [
-                        Text("Discreto", style: TextStyle(fontWeight: FontWeight.w600),),
-                        Text("Contínuo", style: TextStyle(fontWeight: FontWeight.w600),),
-                      ],
                       isSelected: _selectedToggle,
                       onPressed: (int index) {
                         setState(() {
@@ -105,6 +101,10 @@ class _MyHomePageState extends State<MyHomePage> {
                           }
                         });
                       },
+                      children: [
+                        Text("Discreto", style: TextStyle(fontWeight: FontWeight.w600),),
+                        Text("Contínuo", style: TextStyle(fontWeight: FontWeight.w600),),
+                      ],
                     ),
                     IconButton(
                         onPressed: () {
@@ -146,23 +146,31 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedBorderColor: Colors.lightBlue[700],
                   selectedColor: Colors.lightBlue[500],
                   color: Colors.white,
-                  children: [
-                    Text("Ligar Arduino", style: TextStyle(fontWeight: FontWeight.w600),),
-                    Text("Desligar Arduino", style: TextStyle(fontWeight: FontWeight.w600),),
-                  ],
                   isSelected: _selectedToggleArduino,
-                  onPressed: (int index) {
+                  onPressed: (int index) async{
+                    if (index == 0) {
+                      await requestTurnOnArduino();
+                    }
+                    if (index == 1) {
+                      await requestTurnOffArduino();
+                    }
                     setState(() {
                       if (index == 0) {
                         _selectedToggleArduino[0] = true;
                         _selectedToggleArduino[1] = false;
+                        print("Vou ligar o arduino");
                       }
                       if (index == 1) {
                         _selectedToggleArduino[0] = false;
                         _selectedToggleArduino[1] = true;
+                        print("Vou desligar o arduino");
                       }
                     });
                   },
+                  children: const [
+                    Text("Ligar Arduino", style: TextStyle(fontWeight: FontWeight.w600),),
+                    Text("Desligar Arduino", style: TextStyle(fontWeight: FontWeight.w600),),
+                  ],
                 ) : SizedBox()
               ),
             ],
@@ -248,4 +256,14 @@ Widget displayCharts(BuildContext context, bool scatterOpt, String api_url) {
       ],
     )
   );
+}
+
+Future<void> requestTurnOnArduino() async {
+  final response = await http.get(Uri.parse('${dotenv.env["API_URL"]}/arduino/on'));
+  return;
+}
+
+Future<void> requestTurnOffArduino() async {
+  final response = await http.get(Uri.parse('${dotenv.env["API_URL"]}/arduino/off'));
+  return;
 }
