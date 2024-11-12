@@ -191,6 +191,7 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: Icon(Icons.download, size: 30, color: Colors.blue[800])
           ),
           isShowingDropdown ? DropdownMenu(
+            menuHeight: 300,
               onSelected: (item) async{
                 await downloadCsv(item);
               },
