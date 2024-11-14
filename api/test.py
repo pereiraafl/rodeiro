@@ -10,9 +10,11 @@ import matplotlib.pyplot as plt
 
 rota = "http://localhost:3000"
 
+req = requests.get(f"{rota}/new")
+
 def create_highestlowest():
-    req = requests.get(f"{rota}/new")
-    for i in range(30): 
+    # req = requests.get(f"{rota}/new")
+    for i in range(30):
         rodeiro = {
             "temp_init": i + 10,
             "temp_final": i + 25,
@@ -22,13 +24,15 @@ def create_highestlowest():
     print(req)
 
 def create_continuous():
-    req = requests.get(f"{rota}/new")
-    for i in range(30):
-        rodeiro = {
-            "current_temp": i + 3,
-            "cycle": i
-        }
-        req = requests.post(f"{rota}/continuous", json=rodeiro)
+    # req = requests.get(f"{rota}/new")
+    for i in range(10000000000000000):
+        for j in range(10):
+            rodeiro = {
+                "current_temp": i*(j+i) + 20,
+                "cycle": i
+            }
+            req = requests.post(f"{rota}/continuous", json=rodeiro)
+            sleep(0.25)
     print(req)
 
 def get_highestlowest():
@@ -107,10 +111,10 @@ def plot_continuous():
 
 
 
-# create_highestlowest()
-# create_continuous()
+create_highestlowest()
+create_continuous()
 # get_highestlowest()
 # get_continuous()
 # get_last_continuous()
 # test_sockets()
-plot_highestlowest()
+# plot_highestlowest()
