@@ -223,11 +223,11 @@ io.on('connection', (socket: any) => {
   setInterval(() => {
     if (arduinoSocketCommunication) {
       if (arduinoShouldSendOn) {
-        socket.emit('send', { mode: 'on' });
+        io.emit('send', { mode: 'on' });
         arduinoShouldSendOn = false;
       }
       if (arduinoShouldSendOff) {
-        socket.emit('send', { mode: 'off' });
+        io.emit('send', { mode: 'off' });
         arduinoShouldSendOff = false;
       }
       arduinoSocketCommunication = false;
@@ -236,6 +236,6 @@ io.on('connection', (socket: any) => {
 });
 
 server.listen(port, async () => {
-  mongooseConnection = await connect(connectionString);
+  // mongooseConnection = await connect(connectionString);
   console.log(`Server is running on http://localhost:${port}`);
 });
