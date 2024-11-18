@@ -236,28 +236,35 @@ Future<void> downloadCsv(String collName) async{
 
 Widget displayCharts(BuildContext context, bool scatterOpt, String api_url) {
   return Scaffold(
-      backgroundColor: Colors.blueGrey[900],
-      body: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: Icon(Icons.arrow_back, size: 20,),
+    backgroundColor: Colors.blueGrey[900],
+    body: SingleChildScrollView( // Allow scrolling if content overflows
+      child: Padding( // Optional padding to avoid content sticking to edges
+        padding: const EdgeInsets.all(8.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center, // Adjusted alignment
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Icon(Icons.arrow_back, size: 20, color: Colors.red),
+              ),
+              // Use widgets without Expanded or Flexible if height is not constrained
+              HistoryContinuous(API_URL: api_url, isScatter: scatterOpt),
+              SizedBox(height: 10),  // Add spacing between widgets
+              HistoryHighestlowest(API_URL: api_url),
+              SizedBox(height: 10),  // Add spacing between widgets
+              LiveContinuous(API_URL: api_url),
+            ],
+          ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            HistoryContinuous(API_URL: api_url, isScatter: scatterOpt,),
-            HistoryHighestlowest(API_URL: api_url)
-          ],
-        ),
-        LiveContinuous(API_URL: api_url),
-      ],
-    )
+      ),
+    ),
   );
 }
+
+
 
 Future<void> requestTurnOnArduino() async {
   final response = await http.get(Uri.parse('${dotenv.env["API_URL"]}/arduino/on'));
