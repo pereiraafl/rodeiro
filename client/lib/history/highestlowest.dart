@@ -131,14 +131,12 @@ class HighestlowestPoints {
 }
 
 Future<List<HighestlowestPoints>> fetchContinuous(String url, double skipCount) async {
-  final response = await http.get(Uri.parse('${url}/continuous'));
+  final response = await http.get(Uri.parse('${url}/continuous?index=${skipCount}'));
   var response_json = json.decode(response.body);
   List<HighestlowestPoints> dataPoints = [];
   int index = skipCount.toInt();
   List<double> temps = [];
-  var response_json_list = response_json as List<dynamic>;
-  response_json_list = response_json_list.skip(index).toList();
-  for (var point in response_json_list) {
+  for (var point in response_json) {
     if (point["cycle"] > index) {
       double maxTemp = temps.reduce(max);
       double minTemp = temps.reduce(min);
