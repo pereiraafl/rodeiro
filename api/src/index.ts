@@ -66,9 +66,13 @@ app.post('/highestlowest', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/continuous', async (_: Request, res: Response) => {
+app.get('/continuous', async (req: Request, res: Response) => {
   try {
-    const data = await ContinuousRodeiro.find();
+    let data = await ContinuousRodeiro.find();
+    if (req.query.index) { // /continuous?index=69
+      let index = req.query.index.toString();
+      data = data.slice(Number(index));
+    }
     res.json(data);
   } catch (error) {
     res.status(500).json({ "error": "failed to get the users" });
