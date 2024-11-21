@@ -18,13 +18,14 @@ class HistoryHighestlowest extends StatefulWidget {
 class _HistoryHighestlowestState extends State<HistoryHighestlowest> {
 
   late String apiUrl;
+  double _currentSliderValue = 0;
 
   List<HighestlowestPoints> _dataSource = [];
 
   @override
   void initState(){
     apiUrl = widget.API_URL;
-    fetchContinuous(apiUrl).then((value) {
+    fetchContinuous(apiUrl, _currentSliderValue).then((value) {
       setState(() {
         _dataSource = value;
       });
@@ -39,6 +40,24 @@ class _HistoryHighestlowestState extends State<HistoryHighestlowest> {
       height: 380,
       child: Column(
         children: [
+          Slider(
+            activeColor: Colors.lightBlueAccent,
+            value: _currentSliderValue,
+            max: 150,
+            divisions: 150,
+            label: _currentSliderValue.round().toString(),
+            onChanged: (double sliderVal) {
+              setState(() {
+                _currentSliderValue = sliderVal;
+              });
+            },
+            onChangeEnd: (sliderVal) async{
+              var resultFetchContinuous = await fetchContinuous(apiUrl, _currentSliderValue);
+              setState(() {
+                _dataSource = resultFetchContinuous;
+              });
+            },
+          ),
           SfCartesianChart(
             isTransposed: true,
             title: ChartTitle(
@@ -111,14 +130,15 @@ class HighestlowestPoints {
   final double temp_final;
 }
 
-Future<List<HighestlowestPoints>> fetchContinuous(String url) async {
+Future<List<HighestlowestPoints>> fetchContinuous(String url, double skipCount) async {
   final response = await http.get(Uri.parse('${url}/continuous'));
-  final response_json = json.decode(response.body);
-
+  var response_json = json.decode(response.body);
   List<HighestlowestPoints> dataPoints = [];
-  int index = 0;
+  int index = skipCount.toInt();
   List<double> temps = [];
-  for (var point in response_json) {
+  var response_json_list = response_json as List<dynamic>;
+  response_json_list = response_json_list.skip(index).toList();
+  for (var point in response_json_list) {
     if (point["cycle"] > index) {
       double maxTemp = temps.reduce(max);
       double minTemp = temps.reduce(min);
@@ -128,6 +148,5 @@ Future<List<HighestlowestPoints>> fetchContinuous(String url) async {
     }
     temps.add(point["current_temp"].toDouble());
   }
-
   return dataPoints;
 }
