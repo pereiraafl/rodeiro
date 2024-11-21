@@ -50,6 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isShowingChartOpt = false;
   bool isShowingDropdown = false;
   bool isShowingArduinoOpt = false;
+  bool areYouSureQuestion = false;
   List<String> continuousCollectionNames = [];
   List<DropdownMenuEntry> dropdownList = [];
 
@@ -60,7 +61,25 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blueGrey[900],
-      body: Column(
+      body: areYouSureQuestion ?
+      AlertDialog(
+        backgroundColor: Colors.black54,
+        title: Text("Você tem certeza que deseja desligar o Arduino?", style: TextStyle(color: Colors.white),),
+        actions: [
+          TextButton(onPressed: () async{
+              await requestTurnOffArduino();
+              setState(() {
+                areYouSureQuestion = false;
+            });
+          }, child: Text("Sim", style: TextStyle(color: Colors.blue),)),
+          TextButton(onPressed: () {
+            setState(() {
+              areYouSureQuestion = false;
+            });
+          }, child: Text("Não", style: TextStyle(color: Colors.blue)))
+        ],
+      )
+      : Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
@@ -152,18 +171,18 @@ class _MyHomePageState extends State<MyHomePage> {
                       await requestTurnOnArduino();
                     }
                     if (index == 1) {
-                      await requestTurnOffArduino();
+                      setState(() {
+                        areYouSureQuestion = !areYouSureQuestion;
+                      });
                     }
                     setState(() {
                       if (index == 0) {
                         _selectedToggleArduino[0] = true;
                         _selectedToggleArduino[1] = false;
-                        print("Vou ligar o arduino");
                       }
                       if (index == 1) {
                         _selectedToggleArduino[0] = false;
                         _selectedToggleArduino[1] = true;
-                        print("Vou desligar o arduino");
                       }
                     });
                   },
