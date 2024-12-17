@@ -231,6 +231,8 @@ Future<List<String>> getListCollectionsContinuous() async {
   for (var collection in collections) {
     collectionNames.add(collection);
   }
+  collectionNames.sort();
+
   return collectionNames;
 }
 
