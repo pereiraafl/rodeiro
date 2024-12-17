@@ -39,6 +39,7 @@ dependencies:
   syncfusion_flutter_charts: ^27.1.58
   dio: ^5.7.0
   http: ^1.2.2
+  file_picker: ^8.1.6
 
 dev_dependencies:
   flutter_test:
