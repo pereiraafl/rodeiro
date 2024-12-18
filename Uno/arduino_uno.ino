@@ -15,6 +15,7 @@ float temp;
 String pythonMessage = "";
 bool rodeiroStatus = true;
 bool doOnce = true;
+bool offWithoutBreaking = false;
 
 void setup() {
   Serial.begin(9600); // Iniciar leitura serial, definindo baudrate = 9600
@@ -41,6 +42,9 @@ void loop() {
       if (pythonMessage.startsWith("off")) {
         rodeiroStatus = false;
         doOnce = true;
+        if (pythonMessage.startsWith("offWithoutBreaking")) {
+          offWithoutBreaking = true;    
+        }
       }
     }
 
@@ -99,15 +103,19 @@ void loop() {
     } 
     if (!rodeiroStatus && doOnce) {
       digitalWrite(inversor_pin, HIGH); // Desliga o motor comandando o relé do inversor
-      delay(500);
-      // Aciona o freio comandando o relé da válvula da central para impedir a    liberação de pressão e comandando o relé de acionamento da central
-      digitalWrite(liberar_k2_pin, HIGH);
-      delay(500); // Esperar um pouco antes de acionar
-      digitalWrite(acionar_k1_pin, LOW);
-      //Serial.println("Central acionada");
-      delay(500); // Esperar meio segundo antes de tirar o acionamento (não énecessário muito tempo para que a pressão seja atingida)
-      // Parar o acionamento (pressão será mantida)
-      digitalWrite(acionar_k1_pin, HIGH);
+      if (!offWithoutBreaking) {
+        delay(500);
+        // Aciona o freio comandando o relé da válvula da central para impedir a    liberação de pressão e comandando o relé de acionamento da central
+        digitalWrite(liberar_k2_pin, HIGH);
+        delay(500); // Esperar um pouco antes de acionar
+        digitalWrite(acionar_k1_pin, LOW);
+        //Serial.println("Central acionada");
+        delay(500); // Esperar meio segundo antes de tirar o acionamento (não énecessário muito tempo para que a pressão seja atingida)
+        // Parar o acionamento (pressão será mantida)
+        digitalWrite(acionar_k1_pin, HIGH);
+      } else {
+        offWithoutBreaking = false;
+      }
       doOnce = false;
     }
 }
