@@ -70,12 +70,10 @@ void loop() {
 
           long time_before_while = millis();
 
-          //TODO: Enviar sinal para PC dizendo que precisa ler a temperatura minima.
-
           Serial.println("Start");
 
           // Aguardar 8 segundos (dentro do while) para a frenagem ser realizada.
-          while ((millis() - time_before_while) < 5000) {
+          while ((millis() - time_before_while) < 6000) {
               delay(150);
           }
 
@@ -86,11 +84,9 @@ void loop() {
           time_before_while = millis();
 
           // Aguardar mais 8 segundos dentro do while para garantir liberação total da pressão e reiniciar o ciclo
-          while ((millis() - time_before_while) < 6000) {
+          while ((millis() - time_before_while) < 5000) {
               delay(150);
           }
-
-          //TODO: Enviar sinal para PC dizendo que a ultima leitura lida foi a máxima.
 
           Serial.println("End");
 
