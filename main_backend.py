@@ -11,10 +11,11 @@ import math
 import requests
 
 import socketio
+from requests.exceptions import ConnectionError
 
 ROTA = "http://localhost:3000"
 arduino_nano = serial.Serial(port='COM14', baudrate=9600, timeout=0, parity=serial.PARITY_EVEN, stopbits=1)
-arduino_uno = serial.Serial(port='COM8', baudrate=9600)
+arduino_uno = serial.Serial(port='COM15', baudrate=9600)
 
 start_req = requests.get(f"{ROTA}/new").status_code
 if (start_req == 200):
@@ -38,9 +39,11 @@ def handle_socket():
     def handle_send(data):
         print("Received data:", data)
         message = data["mode"]
-        if "on" in message:
+        if "on" == message:
             arduino_uno.write("on".encode())
-        if "off" in message:
+        elif "offWithoutBreaking" == message:
+            arduino_uno.write("offWithoutBreaking".encode())
+        elif "off" == message:
             arduino_uno.write("off".encode())
 
     try:
@@ -116,29 +119,35 @@ def read_from_nano():
     file_continous = open(f"{current_time}continous.csv", "a")
     file_continous.write("Temperatura,Ciclo\n")
     while True:
-        if should_exit:
-            file_continous.close()
-            return
-        nano_msg = arduino_nano.readline()
-        if nano_msg:
-            nano_msg = nano_msg.decode("utf-8").strip()
-            lock.acquire()
-            current_temp_reading = float(nano_msg)
-            current_temp_list.append(current_temp_reading)
+        try:
+            if should_exit:
+                file_continous.close()
+                return
+            nano_msg = arduino_nano.readline()
+            if nano_msg:
+                nano_msg = nano_msg.decode("utf-8").strip()
+                lock.acquire()
+                current_temp_reading = float(nano_msg)
+                current_temp_list.append(current_temp_reading)
 
-            if math.isnan(current_temp_reading):
-                current_temp_reading = 69.69
-            
-            data_obj = {
-                "current_temp": current_temp_reading,
-                "cycle": cycle,
-            }
-            requests.post(f"{ROTA}/continuous", json=data_obj)
+                if math.isnan(current_temp_reading):
+                    current_temp_reading = 69.69
+                
+                data_obj = {
+                    "current_temp": current_temp_reading,
+                    "cycle": cycle,
+                }
+                requests.post(f"{ROTA}/continuous", json=data_obj)
 
-            file_continous.write(f"{current_temp_reading}, {cycle}\n")
- 
-            print("Nano: ", current_temp_reading)
-            lock.release()
+                file_continous.write(f"{current_temp_reading}, {cycle}\n")
+    
+                print("Nano: ", current_temp_reading)
+                lock.release()
+        except Exception as e:
+            if isinstance(e, ConnectionError):
+                print("[Thread Arduino Nano] Conexao caiu... Tentando novamente")
+            else:
+                file_continous.close()
 
 def read_from_uno():
     global cycle, current_temp_list, current_temp_reading, should_exit
@@ -178,9 +187,12 @@ def read_from_uno():
                 current_temp_list = []
             print("Uno: ", uno_msg)
             lock.release()
-        except Exception:
-            file_highest_lowest.close()
-            should_exit = True
+        except Exception as e:
+            if isinstance(e, ConnectionError):
+                print("[Thread Arduino Uno] Conexao caiu... Tentando novamente")
+            else:
+                file_highest_lowest.close()
+                should_exit = True
             
 
 def test_serial_reading():
