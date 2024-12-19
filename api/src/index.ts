@@ -28,6 +28,7 @@ let HighestLowestRodeiro: any;
 let arduinoSocketCommunication = false;
 let arduinoShouldSendOn = false;
 let arduinoShouldSendOff = false;
+let arduinoShouldSendOffWithoutBreaking = false;
 
 app.get("/test", async (_: Request, res: Response) => {
   res.json({ "server": "working fine" });
@@ -119,10 +120,13 @@ app.get('/arduino/on', async (_: Request, res: Response) => {
   }
 });
 
-app.get('/arduino/off', async (_: Request, res: Response) => {
+app.get('/arduino/off', async (req: Request, res: Response) => {
   try {
     arduinoSocketCommunication = true;
     arduinoShouldSendOff = true;
+    if (req.query.opt?.toString() === "true") {
+      arduinoShouldSendOffWithoutBreaking = true;
+    }
     res.json({ "message": "obrigado por desligar o arduino. Volte sempre" });
   } catch (error) {
     res.status(500).json({ "error": "server failed" });
@@ -231,7 +235,12 @@ io.on('connection', (socket: any) => {
         arduinoShouldSendOn = false;
       }
       if (arduinoShouldSendOff) {
-        io.emit('send', { mode: 'off' });
+        if (arduinoShouldSendOffWithoutBreaking) {
+          io.emit('send', { mode: 'offWithoutBreaking' });
+          arduinoShouldSendOffWithoutBreaking = false;
+        } else {
+          io.emit('send', { mode: 'off' });
+        }
         arduinoShouldSendOff = false;
       }
       arduinoSocketCommunication = false;
@@ -240,6 +249,6 @@ io.on('connection', (socket: any) => {
 });
 
 server.listen(port, async () => {
-  // mongooseConnection = await connect(connectionString);
+  mongooseConnection = await connect(connectionString);
   console.log(`Server is running on http://localhost:${port}`);
 });

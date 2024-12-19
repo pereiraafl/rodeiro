@@ -25,11 +25,11 @@ class _HistoryHighestlowestState extends State<HistoryHighestlowest> {
   @override
   void initState(){
     apiUrl = widget.API_URL;
-    fetchContinuous(apiUrl, _currentSliderValue).then((value) {
+    /*fetchContinuous(apiUrl, _currentSliderValue).then((value) {
       setState(() {
         _dataSource = value;
       });
-    },);
+    },);*/
     super.initState();
   }
 

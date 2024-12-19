@@ -29,7 +29,7 @@ class _LiveContinuousState extends State<LiveContinuous> {
   void initState(){
     apiUrl = widget.API_URL;
     chartData = <ContinuousPoints>[];
-    timer = Timer.periodic(const Duration(milliseconds: 500), _updateDataSource);
+    timer = Timer.periodic(const Duration(milliseconds: 2000), _updateDataSource);
     super.initState();
   }
 
