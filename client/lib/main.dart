@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:client/history/continuous.dart';
 import 'package:client/history/highestlowest.dart';
 import 'package:client/live/continuous.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -231,6 +232,7 @@ Future<List<String>> getListCollectionsContinuous() async {
   for (var collection in collections) {
     collectionNames.add(collection);
   }
+  collectionNames.sort();
   return collectionNames;
 }
 
@@ -243,14 +245,21 @@ Future<void> downloadCsv(String collName) async{
     options: Options(responseType: ResponseType.stream),
   );
 
-  final file = File('${collName.replaceAll(":", "-")}.csv');
-  final fileStream = file.openWrite();
+  String? outputFileName = await FilePicker.platform.saveFile(
+    dialogTitle: 'Please select an output file:',
+    fileName: '${collName.replaceAll(":", "-")}.csv',
+  );
 
-  await for (final chunk in rs.data.stream) {
-    fileStream.add(chunk);
+  if (outputFileName != null) {
+    final file = File(outputFileName);
+    final fileStream = file.openWrite();
+
+    await for (final chunk in rs.data.stream) {
+      fileStream.add(chunk);
+    }
+
+    await fileStream.close();
   }
-
-  await fileStream.close();
 }
 
 Widget displayCharts(BuildContext context, bool scatterOpt, String api_url) {
