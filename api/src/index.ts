@@ -223,6 +223,20 @@ app.get('/csv/highestlowest/:name', async (req: Request, res: Response) => {
   }
 });
 
+app.delete('/delete/:collection', async (req: Request, res: Response) => {
+  try {
+    const collectionName = req.params.collection;
+    if (collectionName) {
+      await mongooseConnection.connection.db?.collection(collectionName).drop();
+      res.status(200).json();
+    } else {
+      res.status(401).json();
+    }
+  } catch (error) {
+    console.log("Error while trying to delete collection");
+  }
+});
+
 
 io.on('connection', (socket: any) => {
 
