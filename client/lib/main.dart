@@ -11,7 +11,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio/dio.dart';
 import 'dart:io';
 
-Future main() async{
+Future main() async {
   await dotenv.load(fileName: ".env");
   String? minhaKey = dotenv.env["API_URL"];
   print("Minha key: " + minhaKey!);
@@ -21,7 +21,6 @@ Future main() async{
 
 class MyApp extends StatelessWidget {
   MyApp({super.key});
-
 
   @override
   Widget build(BuildContext context) {
@@ -38,13 +37,11 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   String? API_URL = dotenv.env["API_URL"];
 
   bool flag = false;
@@ -62,170 +59,242 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blueGrey[900],
-      body: areYouSureQuestion ?
-      AlertDialog(
-        backgroundColor: Colors.black54,
-        title: Text("Você tem certeza que deseja desligar o Arduino?", style: TextStyle(color: Colors.white),),
-        actions: [
-          TextButton(onPressed: () async{
-              await requestTurnOffArduino();
-              setState(() {
-                areYouSureQuestion = false;
-            });
-          }, child: Text("Sim", style: TextStyle(color: Colors.blue),)),
-          TextButton(onPressed: () {
-            setState(() {
-              areYouSureQuestion = false;
-            });
-          }, child: Text("Não", style: TextStyle(color: Colors.blue)))
-        ],
-      )
-      : Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                  onPressed:() {
-                    setState(() {
-                      isShowingChartOpt = !isShowingChartOpt;
-                    });
-                  },
-                  icon: Icon(Icons.bar_chart, size: 30, color: Colors.blue[800],)
+      body: areYouSureQuestion
+          ? AlertDialog(
+              backgroundColor: Colors.black54,
+              title: Text(
+                "Você tem certeza que deseja desligar o Arduino?",
+                style: TextStyle(color: Colors.white),
               ),
-             AnimatedOpacity(
-                opacity: isShowingChartOpt ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 1000),
-                child: isShowingChartOpt ? Row(
+              actions: [
+                TextButton(
+                    onPressed: () async {
+                      await requestTurnOffArduino();
+                      setState(() {
+                        areYouSureQuestion = false;
+                      });
+                    },
+                    child: Text(
+                      "Sim",
+                      style: TextStyle(color: Colors.blue),
+                    )),
+                TextButton(
+                    onPressed: () {
+                      setState(() {
+                        areYouSureQuestion = false;
+                      });
+                    },
+                    child: Text("Não", style: TextStyle(color: Colors.blue)))
+              ],
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ToggleButtons(
-                      constraints: const BoxConstraints(
-                        minHeight: 40.0,
-                        minWidth: 80.0,
-                      ),
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      selectedBorderColor: Colors.lightBlue[700],
-                      selectedColor: Colors.lightBlue[500],
-                      color: Colors.white,
-                      isSelected: _selectedToggle,
-                      onPressed: (int index) {
-                        setState(() {
-                          if (index == 0) {
-                            _selectedToggle[0] = true;
-                            _selectedToggle[1] = false;
-                          }
-                          if (index == 1) {
-                            _selectedToggle[0] = false;
-                            _selectedToggle[1] = true;
-                          }
-                        });
-                      },
-                      children: [
-                        Text("Discreto", style: TextStyle(fontWeight: FontWeight.w600),),
-                        Text("Contínuo", style: TextStyle(fontWeight: FontWeight.w600),),
-                      ],
-                    ),
                     IconButton(
                         onPressed: () {
                           setState(() {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => displayCharts(context, _selectedToggle[0], API_URL!)),
-                            );
+                            isShowingChartOpt = !isShowingChartOpt;
                           });
                         },
-                        icon: Icon(Icons.refresh, size: 25, color: Colors.blue[800],)
-                    )
+                        icon: Icon(
+                          Icons.bar_chart,
+                          size: 30,
+                          color: Colors.blue[800],
+                        )),
+                    AnimatedOpacity(
+                        opacity: isShowingChartOpt ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 1000),
+                        child: isShowingChartOpt
+                            ? Row(
+                                children: [
+                                  ToggleButtons(
+                                    constraints: const BoxConstraints(
+                                      minHeight: 40.0,
+                                      minWidth: 80.0,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(8)),
+                                    selectedBorderColor: Colors.lightBlue[700],
+                                    selectedColor: Colors.lightBlue[500],
+                                    color: Colors.white,
+                                    isSelected: _selectedToggle,
+                                    onPressed: (int index) {
+                                      setState(() {
+                                        if (index == 0) {
+                                          _selectedToggle[0] = true;
+                                          _selectedToggle[1] = false;
+                                        }
+                                        if (index == 1) {
+                                          _selectedToggle[0] = false;
+                                          _selectedToggle[1] = true;
+                                        }
+                                      });
+                                    },
+                                    children: [
+                                      Text(
+                                        "Discreto",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                      Text(
+                                        "Contínuo",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
+                                  IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    displayCharts(
+                                                        context,
+                                                        _selectedToggle[0],
+                                                        API_URL!)),
+                                          );
+                                        });
+                                      },
+                                      icon: Icon(
+                                        Icons.refresh,
+                                        size: 25,
+                                        color: Colors.blue[800],
+                                      ))
+                                ],
+                              )
+                            : SizedBox())
                   ],
-                ) : SizedBox()
-              )
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                  onPressed: () {
-                    setState(() {
-                      isShowingArduinoOpt = !isShowingArduinoOpt;
-                    });
-                  },
-                  icon: Icon(Icons.settings, size: 30, color: Colors.blue[800])
-              ),
-              SizedBox(height: 200,),
-              AnimatedOpacity(
-                opacity: isShowingArduinoOpt ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 1000),
-                child: isShowingArduinoOpt ? ToggleButtons(
-                  constraints: const BoxConstraints(
-                    minHeight: 40.0,
-                    minWidth: 120.0,
-                  ),
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  selectedBorderColor: Colors.lightBlue[700],
-                  selectedColor: Colors.lightBlue[500],
-                  color: Colors.white,
-                  isSelected: _selectedToggleArduino,
-                  onPressed: (int index) async{
-                    if (index == 0) {
-                      await requestTurnOnArduino();
-                    }
-                    if (index == 1) {
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          setState(() {
+                            isShowingArduinoOpt = !isShowingArduinoOpt;
+                          });
+                        },
+                        icon: Icon(Icons.settings,
+                            size: 30, color: Colors.blue[800])),
+                    SizedBox(
+                      height: 200,
+                    ),
+                    AnimatedOpacity(
+                        opacity: isShowingArduinoOpt ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 1000),
+                        child: isShowingArduinoOpt
+                            ? ToggleButtons(
+                                constraints: const BoxConstraints(
+                                  minHeight: 40.0,
+                                  minWidth: 120.0,
+                                ),
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(8)),
+                                selectedBorderColor: Colors.lightBlue[700],
+                                selectedColor: Colors.lightBlue[500],
+                                color: Colors.white,
+                                isSelected: _selectedToggleArduino,
+                                onPressed: (int index) async {
+                                  if (index == 0) {
+                                    await requestTurnOnArduino();
+                                  }
+                                  if (index == 1) {
+                                    setState(() {
+                                      areYouSureQuestion = !areYouSureQuestion;
+                                    });
+                                  }
+                                  setState(() {
+                                    if (index == 0) {
+                                      _selectedToggleArduino[0] = true;
+                                      _selectedToggleArduino[1] = false;
+                                    }
+                                    if (index == 1) {
+                                      _selectedToggleArduino[0] = false;
+                                      _selectedToggleArduino[1] = true;
+                                    }
+                                  });
+                                },
+                                children: const [
+                                  Text(
+                                    "Ligar Arduino",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.w600),
+                                  ),
+                                  Text(
+                                    "Desligar Arduino",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              )
+                            : SizedBox()),
+                  ],
+                ),
+                IconButton(
+                    onPressed: () async {
+                      // Fetch all /list/continuous
+                      List<String> tmpString =
+                          await getListCollectionsContinuous();
+                      List<DropdownMenuEntry> tmpDropdown = [];
+                      for (var name in tmpString) {
+                        tmpDropdown.add(DropdownMenuEntry(
+                          value: name,
+                          label: name,
+                          leadingIcon: IconButton(
+                              onPressed: () {
+                                deleteCollectionByName(name);
+                                setState(() {
+                                  isShowingDropdown = !isShowingDropdown;
+                                });
+                              },
+                              icon: Icon(
+                                Icons.delete,
+                                color: Colors.blue,
+                              )),
+                          trailingIcon: IconButton(
+                              onPressed: () {
+                                downloadCsv(name);
+                                setState(() {
+                                  isShowingDropdown = !isShowingDropdown;
+                                });
+                              },
+                              icon: Icon(
+                                Icons.download,
+                                color: Colors.blue,
+                              )),
+                        ));
+                      }
                       setState(() {
-                        areYouSureQuestion = !areYouSureQuestion;
+                        dropdownList = tmpDropdown;
+                        isShowingDropdown = !isShowingDropdown;
                       });
-                    }
-                    setState(() {
-                      if (index == 0) {
-                        _selectedToggleArduino[0] = true;
-                        _selectedToggleArduino[1] = false;
-                      }
-                      if (index == 1) {
-                        _selectedToggleArduino[0] = false;
-                        _selectedToggleArduino[1] = true;
-                      }
-                    });
-                  },
-                  children: const [
-                    Text("Ligar Arduino", style: TextStyle(fontWeight: FontWeight.w600),),
-                    Text("Desligar Arduino", style: TextStyle(fontWeight: FontWeight.w600),),
-                  ],
-                ) : SizedBox()
-              ),
-            ],
-          ),
-          IconButton(
-              onPressed: () async {
-                // Fetch all /list/continuous
-                List<String> tmpString = await getListCollectionsContinuous();
-                List<DropdownMenuEntry> tmpDropdown = [];
-                for (var name in tmpString) {
-                  tmpDropdown.add(DropdownMenuEntry(value: name, label: name));
-                }
-                setState(() {
-                  dropdownList = tmpDropdown;
-                  isShowingDropdown = !isShowingDropdown;
-                });
-              },
-              icon: Icon(Icons.download, size: 30, color: Colors.blue[800])
-          ),
-          isShowingDropdown ? DropdownMenu(
-            menuHeight: 300,
-              onSelected: (item) async{
-                await downloadCsv(item);
-              },
-              dropdownMenuEntries: dropdownList,
-            textStyle: TextStyle(color: Colors.white),
-          ) : SizedBox(),
-        ],
-      ),
+                    },
+                    icon: Icon(Icons.download,
+                        size: 30, color: Colors.blue[800])),
+                isShowingDropdown
+                    ? DropdownMenu(
+                        menuHeight: 300,
+                        onSelected: (item) async {
+                          await downloadCsv(item);
+                        },
+                        dropdownMenuEntries: dropdownList,
+                        textStyle: TextStyle(color: Colors.white),
+                      )
+                    : SizedBox(),
+              ],
+            ),
     );
   }
 }
 
 Future<List<String>> getListCollectionsContinuous() async {
-  final response = await http.get(Uri.parse('${dotenv.env["API_URL"]}/list/continuous'));
+  final response =
+      await http.get(Uri.parse('${dotenv.env["API_URL"]}/list/continuous'));
   final response_json = json.decode(response.body);
   List<String> collectionNames = [];
   var collections = response_json["collections"];
@@ -236,7 +305,7 @@ Future<List<String>> getListCollectionsContinuous() async {
   return collectionNames;
 }
 
-Future<void> downloadCsv(String collName) async{
+Future<void> downloadCsv(String collName) async {
   final API_URL = dotenv.env["API_URL"];
   final dio = Dio();
 
@@ -265,8 +334,10 @@ Future<void> downloadCsv(String collName) async{
 Widget displayCharts(BuildContext context, bool scatterOpt, String api_url) {
   return Scaffold(
     backgroundColor: Colors.blueGrey[900],
-    body: SingleChildScrollView( // Allow scrolling if content overflows
-      child: Padding( // Optional padding to avoid content sticking to edges
+    body: SingleChildScrollView(
+      // Allow scrolling if content overflows
+      child: Padding(
+        // Optional padding to avoid content sticking to edges
         padding: const EdgeInsets.all(8.0),
         child: Center(
           child: Column(
@@ -280,9 +351,11 @@ Widget displayCharts(BuildContext context, bool scatterOpt, String api_url) {
               ),
               // Use widgets without Expanded or Flexible if height is not constrained
               HistoryContinuous(API_URL: api_url, isScatter: scatterOpt),
-              SizedBox(height: 10),  // Add spacing between widgets
+              SizedBox(height: 10),
+              // Add spacing between widgets
               HistoryHighestlowest(API_URL: api_url),
-              SizedBox(height: 10),  // Add spacing between widgets
+              SizedBox(height: 10),
+              // Add spacing between widgets
               LiveContinuous(API_URL: api_url),
             ],
           ),
@@ -292,14 +365,18 @@ Widget displayCharts(BuildContext context, bool scatterOpt, String api_url) {
   );
 }
 
-
+Future<void> deleteCollectionByName(String collectionName) async{
+  final response = await http.delete(Uri.parse('${dotenv.env["API_URL"]}/delete/$collectionName'), headers: {"Content-Type": "application/json"});
+}
 
 Future<void> requestTurnOnArduino() async {
-  final response = await http.get(Uri.parse('${dotenv.env["API_URL"]}/arduino/on'));
+  final response =
+      await http.get(Uri.parse('${dotenv.env["API_URL"]}/arduino/on'));
   return;
 }
 
 Future<void> requestTurnOffArduino() async {
-  final response = await http.get(Uri.parse('${dotenv.env["API_URL"]}/arduino/off'));
+  final response =
+      await http.get(Uri.parse('${dotenv.env["API_URL"]}/arduino/off'));
   return;
 }
