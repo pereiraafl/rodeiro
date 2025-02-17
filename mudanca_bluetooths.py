@@ -15,13 +15,19 @@ from requests.exceptions import ConnectionError
 
 from timeit import default_timer as timer
 
+# Helper to identify exception on Arduino Uno Bluetooth thread
+class BluetoothTimeoutException(Exception):
+    pass
+
 ROTA = "http://localhost:3000"
 
 COM_PORT_BLUETOOTH = "COM8"
 COM_PORT_SERIAL = "COM9"
+BLUETOOTH_TIMEOUT = 500 # Secs
+SERIAL_TIMEOUT = 10 # Secs
 
-arduino_uno_bluetooth = serial.Serial(port=COM_PORT_BLUETOOTH, baudrate=9600, timeout=0, parity=serial.PARITY_EVEN, stopbits=1)
-arduino_nano_serial = serial.Serial(port=COM_PORT_SERIAL, baudrate=9600)
+arduino_uno_bluetooth = serial.Serial(port=COM_PORT_BLUETOOTH, baudrate=9600, timeout=BLUETOOTH_TIMEOUT, parity=serial.PARITY_EVEN, stopbits=1)
+arduino_nano_serial = serial.Serial(port=COM_PORT_SERIAL, baudrate=9600, timeout=SERIAL_TIMEOUT)
 
 start_req = requests.get(f"{ROTA}/new").status_code
 if (start_req == 200):
@@ -79,6 +85,42 @@ rodeiro_is_locked = False
 current_temp_reading = 0
 cycle = 0
 
+def reconnect_arduino_nano_serial():
+    global arduino_nano_serial
+    while True:
+        try:
+            if arduino_nano_serial and arduino_nano_serial.is_open:
+                arduino_nano_serial.close()
+            arduino_nano_serial = serial.Serial(port=COM_PORT_SERIAL, baudrate=9600)
+            return arduino_nano_serial
+        except Exception as e:
+            if (isinstance(e, serial.SerialException)):
+                sleep(0.5)
+                print("Tentando reconectar com Arduino Nano - Serial ...")
+            else:
+                print("[reconnect_arduino_nano_serial]: Outro erro: ", e.with_traceback)
+
+def handle_bluetooth_timeout():
+    global arduino_uno_bluetooth
+    while True:
+        try:
+            if arduino_uno_bluetooth and arduino_uno_bluetooth.is_open:
+                arduino_uno_bluetooth.close()
+            arduino_uno_bluetooth = serial.Serial(port=COM_PORT_BLUETOOTH, baudrate=9600, timeout=BLUETOOTH_TIMEOUT, parity=serial.PARITY_EVEN, stopbits=1)
+            if arduino_uno_bluetooth and arduino_uno_bluetooth.is_open:
+                print("Bluetooth Connected Again!")
+
+            # Currently not working
+            # arduino_uno_bluetooth.write("off".encode())
+            # sleep(5)
+            # arduino_uno_bluetooth.write("on".encode())
+            return
+        except Exception as e:
+            if (isinstance(e, serial.SerialException)):
+                sleep(0.5)
+                print("Tentando reconectar com Arduino Uno - Bluetooth ...")
+            else:
+                print("[handle_bluetooth_timeout]: Outro erro: ", e.with_traceback)
 
 def serial_thread():
     global current_temp_reading, should_exit, cycle, arduino_nano_serial
@@ -91,7 +133,11 @@ def serial_thread():
             if should_exit:
                 file_continous.close()
                 return
-            nano_msg = arduino_nano_serial.readline().decode("utf-8").strip()
+            nano_msg = arduino_nano_serial.readline()
+            if nano_msg == b'': # This will be true only when timeout occur
+                print("[Thread Arduino Uno] Parou de enviar dados e caiu no timeout.")
+                raise serial.SerialException
+            nano_msg = nano_msg.decode("utf-8").strip()
             if nano_msg:
                 lock.acquire()
                 current_temp_reading = float(nano_msg)
@@ -119,24 +165,11 @@ def serial_thread():
                 sleep(1)
                 arduino_nano_serial = reconnect_arduino_nano_serial()
                 continue
-            else:
-                print("Deu problema: ", e.with_traceback)
+            elif isinstance(e, KeyboardInterrupt):
                 file_continous.close()
-
-def reconnect_arduino_nano_serial():
-    global arduino_nano_serial
-    while True:
-        try:
-            if arduino_nano_serial and arduino_nano_serial.is_open:
-                arduino_nano_serial.close()
-            arduino_nano_serial = serial.Serial(port=COM_PORT_SERIAL, baudrate=9600)
-            return arduino_nano_serial
-        except Exception as e:
-            if (isinstance(e, serial.SerialException)):
-                sleep(0.5)
-                print("Tentando reconectar com Arduino Nano - Serial ...")
             else:
-                print("[reconnect_arduino_nano_serial]: Outro erro: ", e.with_traceback)
+                print("Excecao inesperada: ", e.with_traceback)
+                continue
 
 def bluetooth_thread():
     global cycle, current_temp_reading, should_exit, rodeiro_is_locked
@@ -145,7 +178,10 @@ def bluetooth_thread():
 
     while True:
         try:
+            print("Im going to read")
             uno_msg = arduino_uno_bluetooth.readline()
+            if uno_msg == b'': # Timeout. Rodeiro is locked or bluetooth got disconnected.
+                raise BluetoothTimeoutException
             uno_msg = uno_msg.decode("utf-8").strip()
             if uno_msg:
                 lock.acquire()
@@ -168,38 +204,22 @@ def bluetooth_thread():
             elif isinstance(e, serial.SerialException):
                 print("[Thread Arduino Uno] ERRO CONEXAO SERIAL COM ARDUINO. TENTANDO NOVAMENTE")
                 continue
+            elif isinstance(e, BluetoothTimeoutException):
+                print("[Thread Arduino Uno] Bluetooth Timeout")
+                handle_bluetooth_timeout()                
             else:
                 print("DEU ERRO ARDUINO UNO", e.with_traceback)
                 should_exit = True
-            
-def monitor_trigger_time():
-    global rodeiro_is_locked, arduino_uno
-    while True:
-        try:
-            trigger_lock.acquire()
-            if rodeiro_is_locked == True:
-                arduino_uno.write("off".encode())
-                sleep(5)
-                arduino_uno.write("on".encode())
-                rodeiro_is_locked = False
-            trigger_lock.release()
-        except Exception as e:
-            print('Tentando reconectar com Arduino Uno', e)
-            trigger_lock.release()
-            continue
 
 def test_serial_reading():
     thread_socket = threading.Thread(target=handle_socket)
 
     thread_bluetooth = threading.Thread(target=bluetooth_thread)
     thread_serial = threading.Thread(target=serial_thread)
-    #thread_trigger_time = threading.Thread(target=monitor_trigger_time)
 
     thread_socket.start()
 
     thread_bluetooth.start()
     thread_serial.start()
-
-    #thread_trigger_time.start()
 
 test_serial_reading()
