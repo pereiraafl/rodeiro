@@ -1,7 +1,7 @@
+#include <SoftwareSerial.h>
 #include "max6675.h" // Biblioteca utilizada para o amplificador de sinal dos termopares
 #include "LiquidCrystal_I2C.h" // Biblioteca da tela LCD
 #include "Wire.h" // Biblioteca para realizar as comunicações com a tela LCD
-LiquidCrystal_I2C lcd(0x27, 16, 2);
 int inversor_pin = 8; // Pino digital conectado ao relé de comando do motor/inversor
 int acionar_k1_pin = 7; // Pino digital conectado ao relé de comando de acionamento da central
 int liberar_k2_pin = 6; // Pino digital conectado ao relé de comando de liberação/comutação da válvula da central
@@ -10,6 +10,12 @@ int ciclo = 0; // Contador de ciclos
 int thermoD0 = 3; // so
 int thermoCS = 4;
 int thermoCLK = 5; // sck
+
+int RX = 12;
+int TX = 11;
+
+SoftwareSerial bluetooth(RX, TX); // RX, TX
+
 float temp;
 
 String pythonMessage = "";
@@ -17,29 +23,32 @@ bool rodeiroStatus = true;
 bool doOnce = true;
 bool offWithoutBreaking = false;
 
+int cycle = 0;
+
 void setup() {
-  Serial.begin(9600); // Iniciar leitura serial, definindo baudrate = 9600
+  //Serial.begin(9600); // Iniciar leitura serial, definindo baudrate = 9600
+  bluetooth.begin(9600);
+  while (!bluetooth) {
+  }
   // Definindo todos os pinos de relé como OUTPUT (eles terão a função de enviar informação ao relé)
   pinMode(inversor_pin, OUTPUT);
   pinMode(acionar_k1_pin, OUTPUT);
   pinMode(liberar_k2_pin, OUTPUT);
   digitalWrite(acionar_k1_pin, HIGH); // Freio não acionado
   digitalWrite(liberar_k2_pin, LOW);
-  // Inicialização da tela LCD
-  lcd.init();
-  lcd.backlight();
-  lcd.clear(); // Limpa a tela
-  lcd.setCursor(0,0); // Coloca o cursor no lugar necessário para digitar
-  lcd.print("INICIANDO..."); // Escrever na tela que está iniciando
 }
+
 void loop() {
   
-    if (Serial.available()) {
-      pythonMessage = Serial.readString();
-      if (pythonMessage.startsWith("on")) {
+    if (bluetooth.available()) {
+      pythonMessage = bluetooth.readString();
+      bluetooth.print("ECO: ");
+      bluetooth.println(pythonMessage);   
+      if (pythonMessage.indexOf("on") > -1) {
         rodeiroStatus = true;
       }
-      if (pythonMessage.startsWith("off")) {
+      if (pythonMessage.indexOf("off") > -1) {
+        bluetooth.print("YYYYYYY");
         rodeiroStatus = false;
         doOnce = true;
         if (pythonMessage.startsWith("offWithoutBreaking")) {
@@ -74,7 +83,8 @@ void loop() {
 
           long time_before_while = millis();
 
-          Serial.println("Start");
+          // Serial.println("Start");
+          bluetooth.println("Start");
 
           // Aguardar 8 segundos (dentro do while) para a frenagem ser realizada.
           while ((millis() - time_before_while) < 6000) {
@@ -92,7 +102,12 @@ void loop() {
               delay(150);
           }
 
-          Serial.println("End");
+          // Serial.println("End");
+          bluetooth.println("End");
+
+          cycle++;
+
+          bluetooth.println(cycle);
 
           ciclo = ciclo + 1; // Acrescentar à contagem de ciclos
           } else { // Se não tiver atingido a velocidade, manter o motor ligado até atingir

@@ -15,7 +15,7 @@ from requests.exceptions import ConnectionError
 
 ROTA = "http://localhost:3000"
 arduino_nano = serial.Serial(port='COM14', baudrate=9600, timeout=0, parity=serial.PARITY_EVEN, stopbits=1)
-arduino_uno = serial.Serial(port='COM15', baudrate=9600)
+arduino_uno = serial.Serial(port='COM15', baudrate=9600, timeout=220)
 
 start_req = requests.get(f"{ROTA}/new").status_code
 if (start_req == 200):
@@ -108,6 +108,10 @@ def plot():
 
 
 lock = threading.Lock()
+
+trigger_lock = threading.Lock()
+rodeiro_is_locked = False
+
 current_temp_reading = 0
 current_temp_list = []
 cycle = 0
@@ -150,7 +154,7 @@ def read_from_nano():
                 file_continous.close()
 
 def read_from_uno():
-    global cycle, current_temp_list, current_temp_reading, should_exit
+    global cycle, current_temp_list, current_temp_reading, should_exit, rodeiro_is_locked
     current_time = get_time_formated()
     file_highest_lowest = open(f"{current_time}highest_lowest.csv", "a")
     file_highest_lowest.write("Temperatura Minima,Temperatura Maxima,Ciclo\n")
@@ -159,11 +163,20 @@ def read_from_uno():
     while True:
         try:
             uno_msg = arduino_uno.readline().decode("utf-8").strip()
+
+            # Na pratica isso significa que o rodeiro está parado devido a algum bug que aconteceu na central
+            # Assim, é preciso desacionar e acionar novamente.
+            if len(uno_msg) < 2:
+                trigger_lock.acquire()
+                rodeiro_is_locked = True
+                trigger_lock.release()
+
             lock.acquire()
             if "Start" in uno_msg:
                 min_temp = current_temp_reading
             if "End" in uno_msg:
                 max_temp = current_temp_reading
+
             if min_temp != -1 and max_temp != -1:
                 cycle += 1
                 max_temp = max(current_temp_list)
@@ -194,17 +207,29 @@ def read_from_uno():
                 file_highest_lowest.close()
                 should_exit = True
             
+def monitor_trigger_time():
+    global rodeiro_is_locked
+    while True:
+        trigger_lock.acquire()
+        if rodeiro_is_locked == True:
+            arduino_uno.write("off".encode())
+            sleep(5)
+            arduino_uno.write("on".encode())
+            rodeiro_is_locked = False
+        trigger_lock.release()
 
 def test_serial_reading():
     thread_socket = threading.Thread(target=handle_socket)
 
     thread_nano = threading.Thread(target=read_from_nano)
     thread_uno = threading.Thread(target=read_from_uno)
+    thread_trigger_time = threading.Thread(target=monitor_trigger_time)
 
     thread_socket.start()
 
     thread_nano.start()
     thread_uno.start()
 
+    thread_trigger_time.start()
 
 test_serial_reading()
