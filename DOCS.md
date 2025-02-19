@@ -93,4 +93,3 @@ Então, rode o código, abrindo o terminal *Ctrl J* e digitando `python test.py`
 
 ### Possíveis erros
 1. Caso ocorra o erro `serial.serialutil.SerialException: could not open port 'COM15': FileNotFoundError(2, 'O sistema não pode encontrar o arquivo especificado.', None, 2)` isso pode indicar que o Bluetooth não está conectado corretamente. Dessa maneira, aba as configurações do bluetooth no Windows, e clique no botão de esquecer o HC-05 e tente conectar novamente. As vezes, tirar o Arduino da tomada e colocar novamente também ajuda.
-2. 
