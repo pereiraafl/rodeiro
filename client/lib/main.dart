@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:client/history/continuous.dart';
@@ -14,9 +15,9 @@ import 'dart:io';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService.init();
   await dotenv.load(fileName: ".env");
   String? minhaKey = dotenv.env["API_URL"];
+  await NotificationService.init(minhaKey!);
   print("Minha key: " + minhaKey!);
 
   runApp(MyApp());
@@ -57,6 +58,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<bool> _selectedToggle = [true, false];
   List<bool> _selectedToggleArduino = [true, false];
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -237,13 +243,6 @@ class _MyHomePageState extends State<MyHomePage> {
                               )
                             : SizedBox()),
                   ],
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    NotificationService.showInstantNotification(
-                        "Atualização - Rodeiro", "Temperatura: 35.5 | Ciclo: 102");
-                  },
-                  child: const Text('Show Notification'),
                 ),
                 IconButton(
                     onPressed: () async {

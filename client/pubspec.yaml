@@ -41,6 +41,7 @@ dependencies:
   http: ^1.2.2
   file_picker: ^8.1.6
   flutter_local_notifications: ^18.0.1
+  flutter_background_service: ^5.1.0
 
 dev_dependencies:
   flutter_test:
