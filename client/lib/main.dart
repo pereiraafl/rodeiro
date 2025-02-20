@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:client/history/continuous.dart';
 import 'package:client/history/highestlowest.dart';
 import 'package:client/live/continuous.dart';
+import 'package:client/notifications.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -12,6 +13,8 @@ import 'package:dio/dio.dart';
 import 'dart:io';
 
 Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
   await dotenv.load(fileName: ".env");
   String? minhaKey = dotenv.env["API_URL"];
   print("Minha key: " + minhaKey!);
@@ -234,6 +237,13 @@ class _MyHomePageState extends State<MyHomePage> {
                               )
                             : SizedBox()),
                   ],
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    NotificationService.showInstantNotification(
+                        "Atualização - Rodeiro", "Temperatura: 35.5 | Ciclo: 102");
+                  },
+                  child: const Text('Show Notification'),
                 ),
                 IconButton(
                     onPressed: () async {
