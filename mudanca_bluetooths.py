@@ -91,7 +91,7 @@ def reconnect_arduino_nano_serial():
         try:
             if arduino_nano_serial and arduino_nano_serial.is_open:
                 arduino_nano_serial.close()
-            arduino_nano_serial = serial.Serial(port=COM_PORT_SERIAL, baudrate=9600)
+            arduino_nano_serial = serial.Serial(port=COM_PORT_SERIAL, baudrate=9600, timeout=SERIAL_TIMEOUT)
             return arduino_nano_serial
         except Exception as e:
             if (isinstance(e, serial.SerialException)):
