@@ -13,11 +13,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio/dio.dart';
 import 'dart:io';
 
+import 'dart:io' show Platform;
+
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   String? minhaKey = dotenv.env["API_URL"];
-  await NotificationService.init(minhaKey!);
+  if (Platform.isAndroid) {
+    await NotificationService.init(minhaKey!);
+  }
   print("Minha key: " + minhaKey!);
 
   runApp(MyApp());
