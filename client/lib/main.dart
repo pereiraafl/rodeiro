@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:client/history/continuous.dart';
 import 'package:client/history/highestlowest.dart';
 import 'package:client/live/continuous.dart';
+import 'package:client/notifications.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -11,9 +13,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio/dio.dart';
 import 'dart:io';
 
+import 'dart:io' show Platform;
+
 Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   String? minhaKey = dotenv.env["API_URL"];
+  if (Platform.isAndroid) {
+    await NotificationService.init(minhaKey!);
+  }
   print("Minha key: " + minhaKey!);
 
   runApp(MyApp());
@@ -54,6 +62,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<bool> _selectedToggle = [true, false];
   List<bool> _selectedToggleArduino = [true, false];
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
