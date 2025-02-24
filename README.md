@@ -8,6 +8,10 @@
 
 [Como utilizar](#como-utilizar)
 
+[Guia de Testes](DOCS.md)
+
+[Esquemático Elétrico](DIAGRAM.md)
+
 ## Estrutura do Hardware
 
 #### Arduino Uno - Temperatura
