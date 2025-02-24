@@ -10,14 +10,12 @@
 
 ## Estrutura do Hardware
 
-#### Arduino Nano
-Um Arduino Nano é responsável por obter a temperatura da pastilha de freio utilizando termopares com o módulo MAX-6675. Os dados da temperatura são enviados via Bluetooth por meio do módulo HC-05. Para alimentação, é utilizado uma fonte externa de 5V no Arduino Nano. Ressalta-se a importância de colocar um capacitor de desacoplamento de 0.1uF no MAX-6675 para filtragem de eventuais ruídos, conforme indicado em seu datasheet. A figura a seguir apresenta um diagrama das conexões envolvendo o Nano. O firmware presente no Arduino Nano está localizado em `/Nano/arduino_nano.ino`.
+#### Arduino Uno - Temperatura
+Um Arduino Uno é responsável por obter a temperatura da pastilha de freio utilizando termopares com o módulo MAX-6675. Os dados da temperatura são enviados via Serial por meio de um cabo USB. Para alimentação, é utilizado uma fonte externa de 5V no Arduino Uno. Ressalta-se a importância de colocar um capacitor de desacoplamento de 0.1uF no MAX-6675 para filtragem de eventuais ruídos, conforme indicado em seu datasheet. O firmware está localizado em `/Uno_serial/arduino_uno_serial.ino`.
 
-![NanoConnections](/assets/nano_connection.png)
-
-#### Arduino Uno
-Um Arduino Uno controla uma central hidráulica, responsável pelo acionamento do freio do rodeiro, e um inversor, que por sua vez controla o motor trifásico do sistema. Os acionamentos são realizados por meio de três relés, sendo um para o inversor e os outros dois para o acionamento da central e liberação/comutação da válvula da central. É utilizado uma fonte externa de 12V para alimentação do Arduino Uno.
-As conexões elétrica envolvendo a central hidraulica, o inversor e o Arduino Uno estão indicadas na figura a seguir. O firmware está localizado em `/Uno/arduino_uno.ino`. 
+#### Arduino Uno - Controle
+Um Arduino Uno controla uma central hidráulica, responsável pelo acionamento do freio do rodeiro, e um inversor, que por sua vez controla o motor trifásico do sistema. Os acionamentos são realizados por meio de três relés, sendo um para o inversor e os outros dois para o acionamento da central e liberação/comutação da válvula da central. É utilizado uma fonte externa de 9V para alimentação do Arduino Uno. Além disso, para a contagem dos ciclos, é utilizado o módulo HC-05, que envia os dados de inicio e fim da frenagem por bluetooth para o computador.
+As conexões elétrica envolvendo a central hidraulica, o inversor e o Arduino Uno estão indicadas na figura a seguir. O firmware está localizado em `/Uno_bluetooth/arduino_uno_bluetooth.ino`. 
 
 ![UnoConnections](/assets/uno_connection.jpeg)
 (Créditos e agradecimento ao André Filipe Lambert Pereira pela construção desse ótimo esquemático e desenvolvimento das conexões elétricas)
